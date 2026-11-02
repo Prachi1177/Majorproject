@@ -4,7 +4,7 @@ const wrapasync = require("../utils/wrapasync.js");
 const { isLoggedIn, isOwner, validateListing } = require("../middleware.js");
 const listingController = require("../controller/listing.js");
 const multer = require('multer');
-const { storage } = require("../cloudconfig.js");
+const { storage } = require("../../cloudconfig.js");
 const upload = multer({ storage });
 
 router.route("/")
