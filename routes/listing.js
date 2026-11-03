@@ -2,7 +2,15 @@ const express = require("express");
 const router = express.Router();
 const wrapAsync = require("../utils/wrapAsync.js");
 const { isLoggedIn, isOwner, validateListing } = require("../middleware.js");
-const listingController = require("../controller/listing.js");
+
+// controller folder cha nav jo asel to gheil
+let listingController;
+try {
+  listingController = require("../controllers/listing.js");
+} catch (e) {
+  listingController = require("../controller/listing.js");
+}
+
 const multer = require("multer");
 const { storage } = require("../cloudconfig.js");
 const upload = multer({ storage });
