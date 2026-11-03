@@ -19,7 +19,7 @@ const reviewRouter = require("./routes/review.js");
 const userRouter = require("./routes/user.js");
 
 const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
-const dbUrl = process.env.ATLASDB_URL || MONGO_URL;
+const dbUrl = process.env.ATLASDB_URL;
 
 main()
   .then(() => console.log("connected to DB"))
@@ -37,7 +37,7 @@ app.use(methodOverride("_method"));
 app.use(express.static(path.join(__dirname, "/public")));
 
 const sessionOptions = {
-  secret: "mysupersecretcode",
+  secret: process.env.SECRET || "mysupersecretcode",
   resave: false,
   saveUninitialized: true,
   cookie: {
@@ -47,7 +47,7 @@ const sessionOptions = {
   },
 };
 
-app.use(session(sessionOptions)); // <--- HA FIX AAHE, adhi fakt sessionOptions hota
+app.use(session(sessionOptions));
 app.use(flash());
 
 app.use(passport.initialize());
@@ -76,6 +76,7 @@ app.use((err, req, res, next) => {
   res.status(statusCode).render("error.ejs", { message });
 });
 
-app.listen(8080, () => {
-  console.log("server is listening to port 8080");
+const port = process.env.PORT || 8080;
+app.listen(port, () => {
+  console.log(`server is listening to port ${port}`);
 });
