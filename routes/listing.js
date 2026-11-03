@@ -1,10 +1,25 @@
 const express = require("express");
 const router = express.Router();
-const wrapAsync = require("../utils/WrapAsync.js");
+
+// WrapAsync - small/capital donhi try karel
+let wrapAsync;
+try { wrapAsync = require("../utils/wrapAsync.js"); } 
+catch (e) { wrapAsync = require("../utils/WrapAsync.js"); }
+
 const { isLoggedIn, isOwner, validateListing } = require("../middleware.js");
-const listingController = require("../controller/listing.js");
+
+// controller - controller / controllers donhi try karel
+let listingController;
+try { listingController = require("../controller/listing.js"); } 
+catch (e) { listingController = require("../controllers/listing.js"); }
+
 const multer = require("multer");
-const { storage } = require("../cloudconfig.js");
+
+// cloudconfig - donhi spelling try
+let storage;
+try { storage = require("../cloudconfig.js").storage; } 
+catch (e) { storage = require("../cloudConfig.js").storage; }
+
 const upload = multer({ storage });
 
 router.route("/")
