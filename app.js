@@ -8,15 +8,11 @@ const path = require("path");
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
 const session = require("express-session");
-const MongoStore = require("connect-mongo");
 const flash = require("connect-flash");
 
 const dbUrl = process.env.ATLASDB_URL;
-
 main().then(() => console.log("DB Connected")).catch(e => console.log(e));
-async function main() {
-  await mongoose.connect(dbUrl);
-}
+async function main() { await mongoose.connect(dbUrl); }
 
 app.engine("ejs", ejsMate);
 app.set("view engine", "ejs");
@@ -25,14 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
 app.use(express.static(path.join(__dirname, "/public")));
 
-const store = MongoStore.create({
-  mongoUrl: dbUrl,
-  crypto: { secret: process.env.SECRET },
-  touchAfter: 24 * 3600,
-});
-
 app.use(session({
-  store,
   secret: process.env.SECRET,
   resave: false,
   saveUninitialized: true,
@@ -48,15 +37,12 @@ app.use((req, res, next) => {
 
 const listingRouter = require("./routes/listing.js");
 app.use("/listings", listingRouter);
-
-app.get("/", (req, res) => {
-  res.redirect("/listings");
-});
+app.get("/", (req, res) => res.redirect("/listings"));
 
 app.use((err, req, res, next) => {
   if (res.headersSent) return next(err);
-  const { statusCode = 500, message = "Something went wrong" } = err;
+  let { statusCode = 500, message = "Something went wrong" } = err;
   res.status(statusCode).render("error.ejs", { message });
 });
 
-app.listen(8080, () => console.log("Server running on 8080"));
+app.listen(8080, () => console.log("Server running"));
