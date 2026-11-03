@@ -71,22 +71,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// ===== TEMP SEED ROUTE - 100% WORKING =====
-app.get("/seeddb-fast", async (req, res) => {
-  try {
-    const initData = require("./init/data.js");
-    const Listing = require("./models/listing.js");
-    await Listing.deleteMany({});
-    const d = initData.data.map(o => ({ ...o, owner: "68f0a1b2c3d4e5f6a7b8c9d0" }));
-    await Listing.insertMany(d);
-    res.send("<h1>DONE! Data Initialized! <a href='/listings'>Go to Listings</a></h1>");
-  } catch (e) {
-    console.log(e);
-    res.send("Error: " + e.message);
-  }
-});
-// ===== END TEMP SEED =====
-
 app.use("/listings", listingRouter);
 app.use("/listings/:id/reviews", reviewRouter);
 app.use("/", userRouter);
