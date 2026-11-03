@@ -1,32 +1,25 @@
 const mongoose = require("mongoose");
-const dns = require("dns");
-dns.setServers(["8.8.8.8", "8.8.4.4"]);
 const initData = require("./data.js");
 const Listing = require("../models/listing.js");
+require("dotenv").config({ path: "../.env" });
 
-const MONGO_URL = process.env.ATLASDB_URL || "mongodb+srv://prachipalaskar45_db_user:prachi12345@cluster0.bacypie.mongodb.net/wanderlust?retryWrites=true&w=majority";
+const dbUrl = process.env.ATLASDB_URL || "mongodb+srv://prachi:prachi123@cluster0.mongodb.net/test?retryWrites=true&w=majority";
 
-main()
-  .then(() => {
-    console.log("connected to DB");
-  })
-  .catch((err) => {
-    console.log(err);
-  });
-
+main().then(() => console.log("DB connected for init")).catch(err => console.log(err));
 async function main() {
-  await mongoose.connect(MONGO_URL);
+  await mongoose.connect(dbUrl);
 }
 
 const initDB = async () => {
   await Listing.deleteMany({});
-  const updatedData = initData.data.map((obj) => ({
+  initData.data = initData.data.map((obj) => ({
     ...obj,
-    owner: new mongoose.Types.ObjectId("68f0a1b2c3d4e5f6a7b8c9d0"),
+    owner: "67f9a2c1e5b4c8a1d2e3f4a5", // dummy owner, nantar signup kelavar change hoil
+    image: { url: obj.image.url, filename: "listingimage" },
+    geometry: { type: "Point", coordinates: [77.2090, 28.6139] }
   }));
-  await Listing.insertMany(updatedData);
-  console.log("data was initialized");
-  mongoose.connection.close();
+  await Listing.insertMany(initData.data);
+  console.log("Data was initialized - 14 listings added");
 };
 
-initDB();
+initDB().then(() => mongoose.connection.close());
