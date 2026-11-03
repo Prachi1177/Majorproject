@@ -18,11 +18,7 @@ const reviewRouter = require("./routes/review.js");
 const userRouter = require("./routes/user.js");
 
 const dbUrl = process.env.ATLASDB_URL;
-mongoose.connect(dbUrl).then(() => {
-  console.log("DB connected");
-}).catch((err) => {
-  console.log(err);
-});
+mongoose.connect(dbUrl).then(() => console.log("DB connected"));
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
@@ -37,19 +33,7 @@ const store = MongoStore.create({
   touchAfter: 24 * 3600,
 });
 
-const sessionOptions = {
-  store,
-  secret: process.env.SECRET,
-  resave: false,
-  saveUninitialized: true,
-  cookie: {
-    expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-    httpOnly: true,
-  },
-};
-
-app.use(session(sessionOptions));
+app.use(session({ store, secret: process.env.SECRET, resave: false, saveUninitialized: true, cookie: { maxAge: 7*24*60*60*1000, httpOnly: true } }));
 app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
@@ -67,16 +51,10 @@ app.use((req, res, next) => {
 app.use("/listings", listingRouter);
 app.use("/listings/:id/reviews", reviewRouter);
 app.use("/", userRouter);
-
-app.get("/", (req, res) => {
-  res.redirect("/listings");
-});
+app.get("/", (req, res) => res.redirect("/listings"));
 
 app.use((err, req, res, next) => {
-  let { statusCode = 500, message = "Something went wrong" } = err;
-  res.status(statusCode).render("error.ejs", { message });
+  res.status(500).render("error.ejs", { message: err.message });
 });
 
-app.listen(8080, () => {
-  console.log("server listening on 8080");
-});
+app.listen(8080, () => console.log("server listening"));
