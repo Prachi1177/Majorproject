@@ -1,14 +1,18 @@
 const mongoose = require("mongoose");
+const dns = require("dns");
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
 const initData = require("./data.js");
 const Listing = require("../models/listing.js");
 
 const MONGO_URL = process.env.ATLASDB_URL || "mongodb+srv://prachipalaskar45_db_user:prachi12345@cluster0.bacypie.mongodb.net/wanderlust?retryWrites=true&w=majority";
 
-main().then(() => {
-  console.log("connected to DB");
-}).catch((err) => {
-  console.log(err);
-});
+main()
+  .then(() => {
+    console.log("connected to DB");
+  })
+  .catch((err) => {
+    console.log(err);
+  });
 
 async function main() {
   await mongoose.connect(MONGO_URL);
@@ -22,6 +26,7 @@ const initDB = async () => {
   }));
   await Listing.insertMany(updatedData);
   console.log("data was initialized");
+  mongoose.connection.close();
 };
 
 initDB();
