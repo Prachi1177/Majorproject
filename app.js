@@ -20,10 +20,8 @@ const userRouter = require("./routes/user.js");
 
 const dbUrl = process.env.ATLASDB_URL;
 
-async function main(){
-  await mongoose.connect(dbUrl);
-}
-main().then(()=> console.log("DB connected"))
+mongoose.connect(dbUrl)
+.then(()=> console.log("DB connected"))
 .catch(err => console.log(err));
 
 app.set("view engine", "ejs");
@@ -39,8 +37,6 @@ const store = MongoStore.create({
   touchAfter: 24 * 3600,
 });
 
-store.on("error", ()=> console.log("ERROR in MONGO SESSION STORE"));
-
 const sessionOptions = {
   store,
   secret: process.env.SECRET,
@@ -55,7 +51,6 @@ const sessionOptions = {
 
 app.use(session(sessionOptions));
 app.use(flash());
-
 app.use(passport.initialize());
 app.use(passport.session());
 passport.use(new LocalStrategy(User.authenticate()));
@@ -73,8 +68,8 @@ app.use("/listings", listingRouter);
 app.use("/listings/:id/reviews", reviewRouter);
 app.use("/", userRouter);
 
-app.all("*", (req, res, next)=>{
-  res.status(404).render("error.ejs", {message: "Page Not Found!"});
+app.get("/", (req,res)=>{
+  res.redirect("/listings");
 });
 
 app.use((err, req, res, next)=>{
