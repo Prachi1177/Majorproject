@@ -32,7 +32,6 @@ app.use(express.urlencoded({extended: true}));
 app.use(methodOverride("_method"));
 app.use(express.static(path.join(__dirname, "/public")));
 
-// FIX - crypto kadhun takla mhanun error janar nahi
 const store = MongoStore.create({
     mongoUrl: dbUrl,
     touchAfter: 24 * 3600,
@@ -68,6 +67,10 @@ app.use((req, res, next)=>{
     res.locals.error = req.flash("error");
     res.locals.currUser = req.user;
     next();
+});
+
+app.get("/", (req,res)=>{
+    res.redirect("/listings");
 });
 
 app.use("/listings", listingRouter);
