@@ -18,11 +18,13 @@ const userRouter = require("./routes/user.js");
 require("dotenv").config();
 const dbUrl = process.env.ATLASDB_URL;
 
-main().then(() => {
-  console.log("Connected to DB");
-}).catch((err) => {
-  console.log(err);
-});
+main()
+  .then(() => {
+    console.log("Connected to DB");
+  })
+  .catch((err) => {
+    console.log(err);
+  });
 
 async function main() {
   await mongoose.connect(dbUrl);
@@ -86,6 +88,7 @@ app.use((err, req, res, next) => {
   res.status(statusCode).render("error.ejs", { message });
 });
 
-app.listen(8080, () => {
-  console.log("Server is listening to port 8080");
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => {
+  console.log(`Server is listening to port ${PORT}`);
 });
