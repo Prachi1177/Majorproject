@@ -1,9 +1,14 @@
+if (process.env.NODE_ENV != "production") {
+  require("dotenv").config();
+}
+
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
 const path = require("path");
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
+const ExpressError = require("./utils/ExpressError.js");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const flash = require("connect-flash");
@@ -15,9 +20,11 @@ const listingRouter = require("./routes/listing.js");
 const reviewRouter = require("./routes/review.js");
 const userRouter = require("./routes/user.js");
 
-require("dotenv").config();
 const dbUrl = process.env.ATLASDB_URL;
 
+async function main() {
+  await mongoose.connect(dbUrl);
+}
 main()
   .then(() => {
     console.log("Connected to DB");
@@ -25,10 +32,6 @@ main()
   .catch((err) => {
     console.log(err);
   });
-
-async function main() {
-  await mongoose.connect(dbUrl);
-}
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
@@ -39,12 +42,14 @@ app.use(express.static(path.join(__dirname, "/public")));
 
 const store = MongoStore.create({
   mongoUrl: dbUrl,
-  crypto: { secret: process.env.SECRET },
+  crypto: {
+    secret: process.env.SECRET,
+  },
   touchAfter: 24 * 3600,
 });
 
 store.on("error", () => {
-  console.log("ERROR IN MONGO SESSION STORE");
+  console.log("ERROR IN MONGO SESSION STORE", err);
 });
 
 const sessionOptions = {
@@ -68,11 +73,22 @@ passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
+// --- HA PATCH TULA ERROR PASUN VACHAVNAR ---
 app.use((req, res, next) => {
   res.locals.success = req.flash("success");
-  res.locals.error = req.flash("error");
+  let errFlash = req.flash("error");
+  // Juna "[object Object]" wala flash ithech udavto
+  errFlash = errFlash.filter(
+    (msg) => !msg.includes("[object Object]") && !msg.includes("not valid JSON")
+  );
+  res.locals.error = errFlash;
   res.locals.currUser = req.user;
   next();
+});
+
+// --- HOME PAGE FIX ---
+app.get("/", (req, res) => {
+  res.redirect("/listings");
 });
 
 app.use("/listings", listingRouter);
@@ -80,15 +96,18 @@ app.use("/listings/:id/reviews", reviewRouter);
 app.use("/", userRouter);
 
 app.all("*", (req, res, next) => {
-  res.status(404).render("error.ejs", { message: "Page Not Found!" });
+  next(new ExpressError(404, "Page Not Found!"));
 });
 
 app.use((err, req, res, next) => {
   let { statusCode = 500, message = "Something went wrong!" } = err;
+  // Error madhe pan toch kharab message asel tar to dakhavu nakos
+  if (message.includes("[object Object]")) {
+    message = "Something went wrong! Please try again.";
+  }
   res.status(statusCode).render("error.ejs", { message });
 });
 
-const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => {
-  console.log(`Server is listening to port ${PORT}`);
+app.listen(8080, () => {
+  console.log("Server is listening to port 8080");
 });
