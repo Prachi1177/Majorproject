@@ -11,7 +11,19 @@ const Listing = require("../models/listing.js");
 const { isLoggedIn, isOwner, validateListing } = require("../middleware.js");
 const listingController = require("../controllers/listings.js");
 const multer = require("multer");
-const { storage } = require("../cloudConfig.js");
+
+// cloudConfig ithech - baherchi file nako
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_API_KEY,
+  api_secret: process.env.CLOUD_API_SECRET,
+});
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: { folder: "wanderlust_DEV", allowedFormats: ["png", "jpg", "jpeg"] },
+});
 const upload = multer({ storage });
 
 router.route("/").get(wrapAsync(listingController.index)).post(isLoggedIn, upload.single("listing[image]"), validateListing, wrapAsync(listingController.createListing));
